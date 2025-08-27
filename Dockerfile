@@ -41,4 +41,4 @@ RUN chmod +x /wait-for-it.sh
 EXPOSE 8019
 
 # Set the entrypoint to wait for MariaDB to be ready before starting the application
-CMD ["/wait-for-it.sh", "product_db:27017", "--", "./api"] 
+CMD ["/wait-for-it.sh", "mongodb:27017", "--", "./api"] 
