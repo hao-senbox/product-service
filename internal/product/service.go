@@ -101,6 +101,9 @@ func (s *productService) GetAllProducts(ctx context.Context) ([]*ProductResponse
 
 	res, err := s.productRepostitory.GetAllProducts(ctx)
 	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			return []*ProductResponse{}, nil
+		}
 		return nil, err
 	}
 
@@ -124,6 +127,14 @@ func (s *productService) GetAllProducts(ctx context.Context) ([]*ProductResponse
 			topicResp.Name = topic.Name
 		}
 
+		folderResp := Folder{}
+		if folder != nil {
+			folderResp = Folder{
+				ID:   folder.ID.Hex(),
+				Name: folder.Name,
+			}
+		}
+
 		products = append(products, &ProductResponse{
 			ID:                 product.ID,
 			ProductName:        product.ProductName,
@@ -132,13 +143,10 @@ func (s *productService) GetAllProducts(ctx context.Context) ([]*ProductResponse
 			ProductDescription: product.ProductDescription,
 			CoverImage:         product.CoverImage,
 			Topic:              topicResp,
-			Folder: Folder{
-				ID:   folder.ID.Hex(),
-				Name: folder.Name,
-			},
-			QRCode:    product.QRCode,
-			CreatedAt: product.CreatedAt,
-			UpdatedAt: product.UpdatedAt,
+			Folder:             folderResp,
+			QRCode:             product.QRCode,
+			CreatedAt:          product.CreatedAt,
+			UpdatedAt:          product.UpdatedAt,
 		})
 
 	}
@@ -174,6 +182,14 @@ func (s *productService) GetProduct(ctx context.Context, id string) (*ProductRes
 		topicResp.Name = topic.Name
 	}
 
+	folderResp := Folder{}
+	if folder != nil {
+		folderResp = Folder{
+			ID:   folder.ID.Hex(),
+			Name: folder.Name,
+		}
+	}
+
 	return &ProductResponse{
 		ID:                 product.ID,
 		ProductName:        product.ProductName,
@@ -182,13 +198,10 @@ func (s *productService) GetProduct(ctx context.Context, id string) (*ProductRes
 		ProductDescription: product.ProductDescription,
 		CoverImage:         product.CoverImage,
 		Topic:              topicResp,
-		Folder: Folder{
-			ID:   folder.ID.Hex(),
-			Name: folder.Name,
-		},
-		QRCode:    product.QRCode,
-		CreatedAt: product.CreatedAt,
-		UpdatedAt: product.UpdatedAt,
+		Folder:             folderResp,
+		QRCode:             product.QRCode,
+		CreatedAt:          product.CreatedAt,
+		UpdatedAt:          product.UpdatedAt,
 	}, nil
 
 }
