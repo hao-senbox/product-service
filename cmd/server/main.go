@@ -11,6 +11,7 @@ import (
 	"product-service/internal/product"
 	"product-service/internal/topic"
 	"product-service/pkg/consul"
+	"product-service/pkg/uploader"
 	"product-service/pkg/zap"
 	"syscall"
 	"time"
@@ -51,6 +52,8 @@ func main() {
 
 	topicService := topic.NewTopicService(consulClient)
 
+	imageService := uploader.NewImageService(consulClient)
+
 	folderCollection := mongoClient.Database(cfg.MongoDB).Collection("folders")
 	folderRepository := folder.NewFolderRepository(folderCollection)
 	folderService := folder.NewFolderService(folderRepository)
@@ -58,7 +61,7 @@ func main() {
 
 	productCollection := mongoClient.Database((cfg.MongoDB)).Collection("products")
 	productRepository := product.NewProductRepository(productCollection)
-	productService := product.NewProductService(productRepository, folderRepository, topicService)
+	productService := product.NewProductService(productRepository, folderRepository, topicService, imageService)
 	productHandler := product.NewProductHandler(productService)
 
 	router := gin.Default()

@@ -7,6 +7,7 @@ import (
 	"log"
 	"product-service/internal/shared/ports"
 	"product-service/internal/topic"
+	"product-service/pkg/uploader"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -24,13 +25,15 @@ type productService struct {
 	productRepostitory ProductRepository
 	folderRepository   ports.FolderRepository
 	topicService       topic.TopicService
+	imageService       uploader.ImageService
 }
 
-func NewProductService(productRepostitory ProductRepository, folderRepository ports.FolderRepository, topicService topic.TopicService) ProductService {
+func NewProductService(productRepostitory ProductRepository, folderRepository ports.FolderRepository, topicService topic.TopicService, imageService uploader.ImageService) ProductService {
 	return &productService{
 		productRepostitory: productRepostitory,
 		folderRepository:   folderRepository,
 		topicService:       topicService,
+		imageService:       imageService,
 	}
 }
 
@@ -135,13 +138,23 @@ func (s *productService) GetAllProducts(ctx context.Context) ([]*ProductResponse
 			}
 		}
 
+		var image string
+		if product.CoverImage != "" {
+			img, err := s.imageService.GetImageKey(ctx, product.CoverImage)
+			if err != nil {
+				log.Println("Error getting image key:", err)
+			} else if img != nil {
+				image = img.Url
+			}
+		}
+
 		products = append(products, &ProductResponse{
 			ID:                 product.ID,
 			ProductName:        product.ProductName,
 			OriginPriceStore:   product.OriginPriceStore,
 			OriginPriceService: product.OriginPriceService,
 			ProductDescription: product.ProductDescription,
-			CoverImage:         product.CoverImage,
+			CoverImage:         image,
 			Topic:              topicResp,
 			Folder:             folderResp,
 			QRCode:             product.QRCode,
@@ -190,13 +203,23 @@ func (s *productService) GetProduct(ctx context.Context, id string) (*ProductRes
 		}
 	}
 
+	var image string
+	if product.CoverImage != "" {
+		img, err := s.imageService.GetImageKey(ctx, product.CoverImage)
+		if err != nil {
+			log.Println("Error getting image key:", err)
+		} else if img != nil {
+			image = img.Url
+		}
+	}
+
 	return &ProductResponse{
 		ID:                 product.ID,
 		ProductName:        product.ProductName,
 		OriginPriceStore:   product.OriginPriceStore,
 		OriginPriceService: product.OriginPriceService,
 		ProductDescription: product.ProductDescription,
-		CoverImage:         product.CoverImage,
+		CoverImage:         image,
 		Topic:              topicResp,
 		Folder:             folderResp,
 		QRCode:             product.QRCode,
